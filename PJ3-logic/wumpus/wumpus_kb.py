@@ -730,8 +730,8 @@ def axiom_generator_only_one_action_axioms(t):
         for idx2 in range(len(proposition_bases_actions)):
             if idx != idx2:
                 noAction.append('~{0}'.format(eval('action_{0}_str({1})'.format(actions[idx2], t))))
-        result.append('({0} & {1})'.format(initialAction, ' & '.join(noAction)))
-    axiom_str = ' | '.join(result)
+        result.append('({0} <=> ({1}))'.format(initialAction, ' & '.join(noAction)))
+    axiom_str = ' & '.join(result)
     return axiom_str
 
 
