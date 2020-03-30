@@ -270,7 +270,6 @@ def axiom_generator_wumpus_and_stench(x, y, xmin, xmax, ymin, ymax):
             stenches.append(wumpus_str(xVal, yVal))
     axiom_str = '{0} <=> ( {1} )'.format(stench_str(x, y), ' | '.join(stenches))
     return axiom_str
-    return axiom_str
 
 
 def generate_wumpus_and_stench_axioms(xmin, xmax, ymin, ymax):
@@ -307,13 +306,13 @@ def axiom_generator_at_most_one_wumpus(xmin, xmax, ymin, ymax):
     allPossibleRooms = [(x, y) for x in range(xmin, xmax + 1) for y in range(ymin, ymax)]
     for room in allPossibleRooms:
         xVal, yVal = room
-        sentence = [wumpus_str(xVal, yVal)]
+        sentence = []
         for x in range(xmin, xmax + 1):
             for y in range(ymin, ymax + 1):
                 if xVal != x or yVal != y:
                     sentence.append('~{0}'.format(wumpus_str(x, y)))
-        wumpi.append('({0})'.format(' & '.join(sentence)))
-    axiom_str = ' | '.join(wumpi)
+        wumpi.append('({0} >> {1})'.format(wumpus_str(xVal, yVal), ' & '.join(sentence)))
+    axiom_str = ' & '.join(wumpi)
     return axiom_str
 
 
