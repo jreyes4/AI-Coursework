@@ -126,29 +126,64 @@ class PlanRouteProblem(search.Problem):
         Heuristic that will be used by search.astar_search()
         """
         "*** YOUR CODE HERE ***"
-        pass
+        return min([manhattan_distance_with_heading(node.state, target) for target in self.goals])
 
     def actions(self, state):
         """
         Return list of allowed actions that can be made in state
         """
         "*** YOUR CODE HERE ***"
-        pass
-
+        #0 = 'north', 1 = 'west', 2 = 'south', 3 = 'east'
+        x, y, heading = state
+        actions = ['Forward', 'TurnRight', 'TurnLeft']
+        if (heading == 0 and (x, y + 1) in self.allowed) or (heading == 1 and (x - 1, y) in self.allowed) or (heading == 2 and (x, y - 1) in self.allowed) or (heading == 3 and (x + 1, y) in self.allowed):
+            return actions
+        else:
+            return ['TurnRight', 'TurnLeft']
 
     def result(self, state, action):
         """
         Return the new state after applying action to state
         """
         "*** YOUR CODE HERE ***"
-        pass
+        x, y, heading = state
+        newState = ()
+        if action == 'Forward':
+            if heading == north:
+                newState = (x, y+1, heading)
+            if heading == west:
+                newState = (x-1, y, heading)
+            if heading == south:
+                newState = (x, y-1, heading)
+            if heading == east:
+                newState = (x+1, y, heading)
+        elif action == 'TurnRight':
+            if heading == north:
+                newState = (x, y, east)
+            if heading == west:
+                newState = (x, y, north)
+            if heading == south:
+                newState = (x, y, west)
+            if heading == east:
+                newState = (x, y, south)
+        elif action == 'TurnLeft':
+            if heading == north:
+                newState = (x, y, west)
+            if heading == west:
+                newState = (x, y, south)
+            if heading == south:
+                newState = (x, y, east)
+            if heading == east:
+                newState = (x, y, north)
+        return newState
 
     def goal_test(self, state):
         """
         Return True if state is a goal state
         """
         "*** YOUR CODE HERE ***"
-        return True
+        x, y, heading = state
+        return (x, y) in self.goals
 
 #-------------------------------------------------------------------------------
 
@@ -245,6 +280,7 @@ class PlanShotProblem(search.Problem):
         Return the new state after applying action to state
         """
         "*** YOUR CODE HERE ***"
+
         pass
 
     def goal_test(self, state):
@@ -287,3 +323,8 @@ def test_PSP(initial = (0,0,3)):
                       (3,0),(3,1),(3,2),(3,3)])
     
 #-------------------------------------------------------------------------------
+#0='north', 1='west', 2='south', 3='east'
+north = 0
+west = 1
+south = 2
+east = 3

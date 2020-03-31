@@ -311,7 +311,7 @@ def axiom_generator_at_most_one_wumpus(xmin, xmax, ymin, ymax):
             for y in range(ymin, ymax + 1):
                 if xVal != x or yVal != y:
                     sentence.append('~{0}'.format(wumpus_str(x, y)))
-        wumpi.append('({0} >> {1})'.format(wumpus_str(xVal, yVal), ' & '.join(sentence)))
+        wumpi.append('({0} >> ({1}))'.format(wumpus_str(xVal, yVal), ' & '.join(sentence)))
     axiom_str = ' & '.join(wumpi)
     return axiom_str
 
