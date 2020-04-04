@@ -133,10 +133,9 @@ class PlanRouteProblem(search.Problem):
         Return list of allowed actions that can be made in state
         """
         "*** YOUR CODE HERE ***"
-        #0 = 'north', 1 = 'west', 2 = 'south', 3 = 'east'
         x, y, heading = state
         actions = ['Forward', 'TurnRight', 'TurnLeft']
-        if (heading == 0 and (x, y + 1) in self.allowed) or (heading == 1 and (x - 1, y) in self.allowed) or (heading == 2 and (x, y - 1) in self.allowed) or (heading == 3 and (x + 1, y) in self.allowed):
+        if (heading == north and (x, y + 1) in self.allowed) or (heading == west and (x - 1, y) in self.allowed) or (heading == south and (x, y - 1) in self.allowed) or (heading == east and (x + 1, y) in self.allowed):
             return actions
         else:
             return ['TurnRight', 'TurnLeft']
@@ -266,29 +265,79 @@ class PlanShotProblem(search.Problem):
         Heuristic that will be used by search.astar_search()
         """
         "*** YOUR CODE HERE ***"
-        pass
+        lineOfFire = []
+        for w_x, w_y in self.goals:
+            for x, y in self.allowed:
+                if w_x == x or w_y == y:
+                    lineOfFire.append(manhattan_distance_with_heading(node.state, (x, y)))
+        return min(lineOfFire)
 
     def actions(self, state):
         """
         Return list of allowed actions that can be made in state
         """
         "*** YOUR CODE HERE ***"
-        pass
+        x, y, heading = state
+        actions = ['Forward', 'TurnRight', 'TurnLeft']
+        if (heading == north and (x, y + 1) in self.allowed) or (heading == west and (x - 1, y) in self.allowed) or (heading == south and (x, y - 1) in self.allowed) or (heading == east and (x + 1, y) in self.allowed):
+            return actions
+        else:
+            return ['TurnRight', 'TurnLeft']
 
     def result(self, state, action):
         """
         Return the new state after applying action to state
         """
         "*** YOUR CODE HERE ***"
-
-        pass
+        x, y, heading = state
+        if action == 'Forward':
+            if heading == north:
+                return (x, y+1, heading)
+            if heading == east:
+                return (x+1, y, heading)
+            if heading == south:
+                return (x, y-1, heading)
+            if heading == west:
+                return (x-1, y, heading)
+        if action == 'TurnRight':
+            if heading == north:
+                return (x, y, east)
+            if heading == east:
+                return (x, y, south)
+            if heading == south:
+                return (x, y, west)
+            if heading == west:
+                return (x, y, north)
+        if action == 'TurnLeft':
+            if heading == north:
+                return (x, y, west)
+            if heading == east:
+                return (x, y, north)
+            if heading == south:
+                return (x, y, east)
+            if heading == west:
+                return (x, y, south)
 
     def goal_test(self, state):
         """
         Return True if state is a goal state
         """
         "*** YOUR CODE HERE ***"
-        return True
+        x, y, heading = state
+        for g_x, g_y in self.goals:
+            if g_x == x:
+                if g_y > y and heading == north:
+                    return True
+                if g_y < y and heading == south:
+                    return True
+                return False
+            if g_y == y:
+                if g_x > x and heading == east:
+                    return True
+                if g_x < x and heading == west:
+                    return True
+                return False
+        return False
 
 #-------------------------------------------------------------------------------
 

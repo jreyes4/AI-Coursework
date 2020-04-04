@@ -201,12 +201,12 @@ def axiom_generator_percept_sentence(t, tvec):
     """
     "*** YOUR CODE HERE ***"
     axiom_results = []
-    percepts = ['Stench', 'Breeze', 'Glitter', 'Bump', 'Scream']
+    percepts = ['stench', 'breeze', 'glitter', 'bump', 'scream']
     for idx in range(len(tvec)):
         if tvec[idx]:
-            axiom_results.append('{0}{1}'.format(percepts[idx], t))
+            axiom_results.append(eval('percept_{0}_str({1})'.format(percepts[idx], t)))
         else:
-            axiom_results.append('~{0}{1}'.format(percepts[idx], t))
+            axiom_results.append('~{0}'.format(eval('percept_{0}_str({1})'.format(percepts[idx], t))))
     return ' & '.join(axiom_results)
 
 
@@ -220,8 +220,7 @@ def axiom_generator_initial_location_assertions(x, y):
     x,y := the location
     """
     "*** YOUR CODE HERE ***"
-    axiom_str = '~{0} & ~{1}'.format(pit_str(x, y), wumpus_str(x, y))
-    return axiom_str
+    return '~{0} & ~{1}'.format(pit_str(x, y), wumpus_str(x, y))
 
 
 def axiom_generator_pits_and_breezes(x, y, xmin, xmax, ymin, ymax):
@@ -235,10 +234,11 @@ def axiom_generator_pits_and_breezes(x, y, xmin, xmax, ymin, ymax):
     """
     "*** YOUR CODE HERE ***"
     pits = []
+    pits.append(pit_str(x, y))
     for xVal, yVal in [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]:
         if xmin <= xVal <= xmax and ymin <= yVal <= ymax:
             pits.append(pit_str(xVal, yVal))
-    axiom_str = '{0} <=> ( {1} )'.format(breeze_str(x, y), ' | '.join(pits))
+    axiom_str = '{0} <=> ({1})'.format(breeze_str(x, y), ' | '.join(pits))
     return axiom_str
 
 
@@ -265,10 +265,11 @@ def axiom_generator_wumpus_and_stench(x, y, xmin, xmax, ymin, ymax):
     """
     "*** YOUR CODE HERE ***"
     stenches = []
+    stenches.append(wumpus_str(x, y))
     for xVal, yVal in [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]:
         if xmin <= xVal <= xmax and ymin <= yVal <= ymax:
             stenches.append(wumpus_str(xVal, yVal))
-    axiom_str = '{0} <=> ( {1} )'.format(stench_str(x, y), ' | '.join(stenches))
+    axiom_str = '{0} <=> ({1})'.format(stench_str(x, y), ' | '.join(stenches))
     return axiom_str
 
 
@@ -323,7 +324,6 @@ def axiom_generator_only_in_one_location(xi, yi, xmin, xmax, ymin, ymax, t=0):
     xmin, xmax, ymin, ymax := the bounds of the environment.
     t := time; default=0
     """
-    axiom_str = ''
     "*** YOUR CODE HERE ***"
     not_at_loc = []
     for x in range(xmin, xmax + 1):
@@ -331,7 +331,6 @@ def axiom_generator_only_in_one_location(xi, yi, xmin, xmax, ymin, ymax, t=0):
             if xi != x or yi != y:
                 not_at_loc.append('~{0}'.format(state_loc_str(x, y, t)))
     axiom_str = '{0} & {1}'.format(state_loc_str(xi, yi, t), ' & '.join(not_at_loc))
-    # Comment or delete the next line once this function has been implemented.
     return axiom_str
 
 
@@ -399,7 +398,7 @@ def axiom_generator_location_OK(x, y, t):
     t := time
     """
     "*** YOUR CODE HERE ***"
-    axiom_str = '~{0} & ( ~{1} | {1} & ~{2} )'.format(pit_str(x, y), wumpus_str(x, y), state_wumpus_alive_str(t))
+    axiom_str = '{0} <=> (~{1} & ({2} >> ~{3}))'.format(state_OK_str(x, y, t), pit_str(x, y), wumpus_str(x, y), state_wumpus_alive_str(t))
     return axiom_str
 
 
@@ -425,7 +424,7 @@ def axiom_generator_breeze_percept_and_location_property(x, y, t):
     t := time
     """
     "*** YOUR CODE HERE ***"
-    axiom_str = '{0} >> {1}'.format(percept_breeze_str(t), breeze_str(x, y))
+    axiom_str = '{0} >> ({1} <=> {2})'.format(state_loc_str(x, y, t), percept_breeze_str(t), breeze_str(x, y))
     return axiom_str
 
 
@@ -448,7 +447,7 @@ def axiom_generator_stench_percept_and_location_property(x, y, t):
     t := time
     """
     "*** YOUR CODE HERE ***"
-    axiom_str = '{0} >> {1}'.format(percept_stench_str(t), stench_str(x, y))
+    axiom_str = '{0} >> ({1} <=> {2})'.format(state_loc_str(x, y, t), percept_stench_str(t), stench_str(x, y))
     return axiom_str
 
 
@@ -486,23 +485,14 @@ def axiom_generator_at_location_ssa(t, x, y, xmin, xmax, ymin, ymax):
     t := time
     xmin, xmax, ymin, ymax := the bounds of the environment.
     """
-    axiom_str = ''
     "*** YOUR CODE HERE ***"
-    # eval('state_heading_{0}_str({1})'.format(directions[idx], t)
     result = []
-    # already true case
     result.append('({0} & (~{1} | {2}))'.format(state_loc_str(x, y, t), action_forward_str(t), percept_bump_str(t + 1)))
-    # result in L t+1
     for xVal, yVal, direc in [(x - 1, y, 'east'), (x + 1, y, 'west'), (x, y - 1, 'north'), (x, y + 1, 'south')]:
         if xmin <= xVal <= xmax and ymin <= yVal <= ymax:
             result.append('({0} & ({1} & {2}))'.format(state_loc_str(xVal, yVal, t),
                                                        eval('state_heading_{0}_str({1})'.format(direc, t)),
                                                        action_forward_str(t)))
-    # #already true
-    # '{0} <=> ({1} & (~{2} | {3}))'.format(state_loc_str(x, y, t+1),
-    #                                       state_loc_str(x, y, t),
-    #                                       action_forward_str(t),
-    #                                       percept_bump_str(t+1))
     axiom_str = '{0} <=> ({1})'.format(state_loc_str(x, y, t + 1), ' | '.join(result))
     return axiom_str
 
@@ -543,7 +533,7 @@ def axiom_generator_have_arrow_ssa(t):
     t := time
     """
     "*** YOUR CODE HERE ***"
-    axiom_str = '{0} <=> ({1} & ~{2})'.format(state_have_arrow_str(t + 1), state_have_arrow_str(t), action_shoot_str(t))
+    axiom_str = '{0} <=> ({1} & ~{2})'.format(state_have_arrow_str(t+1), state_have_arrow_str(t), action_shoot_str(t))
     return axiom_str
 
 
@@ -575,11 +565,10 @@ def axiom_generator_heading_north_ssa(t):
     t := time
     """
     "*** YOUR CODE HERE ***"
-    "*** maybe take into account bumps***"
     result = []
     result.append('({0} & {1})'.format(state_heading_east_str(t), action_turn_left_str(t)))
     result.append('({0} & {1})'.format(state_heading_west_str(t), action_turn_right_str(t)))
-    # result.append()
+    result.append('({0} & ( ~{1} & ~{2} ))'.format(state_heading_north_str(t), action_turn_left_str(t), action_turn_right_str(t)))
     axiom_str = '{0} <=> ({1})'.format(state_heading_north_str(t + 1), ' | '.join(result))
     return axiom_str
 
@@ -592,10 +581,10 @@ def axiom_generator_heading_east_ssa(t):
     t := time
     """
     "*** YOUR CODE HERE ***"
-    "*** maybe take into account bumps***"
     result = []
     result.append('({0} & {1})'.format(state_heading_north_str(t), action_turn_right_str(t)))
     result.append('({0} & {1})'.format(state_heading_south_str(t), action_turn_left_str(t)))
+    result.append('({0} & ( ~{1} & ~{2} ))'.format(state_heading_east_str(t), action_turn_left_str(t), action_turn_right_str(t)))
     axiom_str = '{0} <=> ({1})'.format(state_heading_east_str(t + 1), ' | '.join(result))
     return axiom_str
 
@@ -608,10 +597,10 @@ def axiom_generator_heading_south_ssa(t):
     t := time
     """
     "*** YOUR CODE HERE ***"
-    "*** maybe take into account bumps***"
     result = []
     result.append('({0} & {1})'.format(state_heading_east_str(t), action_turn_right_str(t)))
     result.append('({0} & {1})'.format(state_heading_west_str(t), action_turn_left_str(t)))
+    result.append('({0} & ( ~{1} & ~{2} ))'.format(state_heading_south_str(t), action_turn_left_str(t), action_turn_right_str(t)))
     axiom_str = '{0} <=> ({1})'.format(state_heading_south_str(t + 1), ' | '.join(result))
     return axiom_str
 
@@ -628,6 +617,7 @@ def axiom_generator_heading_west_ssa(t):
     result = []
     result.append('({0} & {1})'.format(state_heading_south_str(t), action_turn_right_str(t)))
     result.append('({0} & {1})'.format(state_heading_north_str(t), action_turn_left_str(t)))
+    result.append('({0} & ( ~{1} & ~{2} ))'.format(state_heading_west_str(t), action_turn_left_str(t), action_turn_right_str(t)))
     axiom_str = '{0} <=> ({1})'.format(state_heading_west_str(t + 1), ' | '.join(result))
     return axiom_str
 
@@ -663,7 +653,7 @@ def axiom_generator_heading_only_north(t):
     t := time
     """
     "*** YOUR CODE HERE ***"
-    axiom_str = '{0} & ~{1} & ~{2} & ~{3}'.format(state_heading_north_str(t), state_heading_east_str(t),
+    axiom_str = '{0} <=> (~{1} & ~{2} & ~{3})'.format(state_heading_north_str(t), state_heading_east_str(t),
                                                   state_heading_south_str(t), state_heading_west_str(t))
     return axiom_str
 
@@ -676,7 +666,7 @@ def axiom_generator_heading_only_east(t):
     t := time
     """
     "*** YOUR CODE HERE ***"
-    axiom_str = '{0} & ~{1} & ~{2} & ~{3}'.format(state_heading_east_str(t), state_heading_north_str(t),
+    axiom_str = '{0} <=> (~{1} & ~{2} & ~{3})'.format(state_heading_east_str(t), state_heading_north_str(t),
                                                   state_heading_south_str(t), state_heading_west_str(t))
     return axiom_str
 
@@ -689,7 +679,7 @@ def axiom_generator_heading_only_south(t):
     t := time
     """
     "*** YOUR CODE HERE ***"
-    axiom_str = '{0} & ~{1} & ~{2} & ~{3}'.format(state_heading_south_str(t), state_heading_east_str(t),
+    axiom_str = '{0} <=> (~{1} & ~{2} & ~{3})'.format(state_heading_south_str(t), state_heading_east_str(t),
                                                   state_heading_north_str(t), state_heading_west_str(t))
     return axiom_str
 
@@ -702,7 +692,7 @@ def axiom_generator_heading_only_west(t):
     t := time
     """
     "*** YOUR CODE HERE ***"
-    axiom_str = '{0} & ~{1} & ~{2} & ~{3}'.format(state_heading_west_str(t), state_heading_east_str(t),
+    axiom_str = '{0} <=> (~{1} & ~{2} & ~{3})'.format(state_heading_west_str(t), state_heading_east_str(t),
                                                   state_heading_south_str(t), state_heading_north_str(t))
     return axiom_str
 
